@@ -3,6 +3,8 @@
 
 Stream travis logs of the current repository's last commit's last build to the terminal.
 
+![screenshot](screenshot.png)
+
 ## Usage
 
 ```bash
