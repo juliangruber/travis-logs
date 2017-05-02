@@ -6,10 +6,17 @@
   "bin": {
     "travis-logs": "index.js"
   },
+  "scripts": {
+    "test": "prettier-standard-formatter *.js && standard"
+  },
   "dependencies": {
     "follow-redirects": "^1.2.3",
     "gh-canonical-repository": "^2.1.0",
     "git-current-commit": "^1.1.0",
     "travis-build-by-commit": "^1.0.0"
+  },
+  "devDependencies": {
+    "prettier-standard-formatter": "^0.222222222222222.333333333333333",
+    "standard": "^10.0.2"
   }
 }
