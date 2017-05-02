@@ -1,0 +1,15 @@
+{
+  "name": "travis-logs",
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": "juliangruber/travis-logs",
+  "bin": {
+    "travis-logs": "index.js"
+  },
+  "dependencies": {
+    "follow-redirects": "^1.2.3",
+    "gh-canonical-repository": "^2.1.0",
+    "git-current-commit": "^1.1.0",
+    "travis-build-by-commit": "^1.0.0"
+  }
+}
