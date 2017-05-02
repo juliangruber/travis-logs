@@ -36,9 +36,9 @@ Promise.all([getRepo(dir), getCommit(dir)])
     https.get({
       host: 'api.travis-ci.org',
       path: `/jobs/${job.id}/log`,
-      /*headers: {
-        'Accept': 'text/plain chunked=true'
-      }*/
+      headers: {
+        'Accept': 'text/plain; chunked=true'
+      }
     }, res => {
 console.log({res})
       if (res.statusCode !== 200) throw Error(`Status: ${res.statusCode}`)
