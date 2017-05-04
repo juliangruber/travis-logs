@@ -53,6 +53,8 @@ Promise.all([
     const channel = socket.subscribe(`job-${job.id}`)
     channel.bind('job:log', msg => {
       process.stdout.write(msg._log)
-      if (msg.final) process.exit()
+      const success = msg._log.slice(-2, -1) === '0'
+      if (success) passed()
+      else failure()
     })
   })
