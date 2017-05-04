@@ -51,7 +51,8 @@ Promise.all([
     )
     const socket = new Pusher(appKey)
     const channel = socket.subscribe(`job-${job.id}`)
-    channel.bind('job:log', data => {
-      console.log(data.message)
+    channel.bind('job:log', msg => {
+      process.stdout.write(msg._log)
+      if (msg.final) process.exit()
     })
   })
