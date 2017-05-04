@@ -10,6 +10,7 @@
     "test": "prettier-standard-formatter *.js && standard"
   },
   "dependencies": {
+    "blocking-stdio": "^1.0.1",
     "gh-canonical-repository": "^2.1.0",
     "git-current-commit": "^1.1.0",
     "pusher-js": "^4.1.0",

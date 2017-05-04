@@ -7,6 +7,8 @@ const getBuild = require('travis-build-by-commit')
 const Travis = require('travis-ci')
 const Pusher = require('pusher-js')
 
+require('blocking-stdio')();
+
 const travis = new Travis({ version: '2.0.0' })
 const dir = process.argv[2] || process.cwd()
 
