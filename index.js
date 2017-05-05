@@ -56,6 +56,7 @@ Promise.all([
     channel.bind('job:log', msg => {
       process.stdout.write(msg._log)
       if (msg.final) {
+        console.log(`FINAL "${msg._log}"`)
         const success = msg._log.indexOf('0') > -1
         if (success) passed()
         else failure()
