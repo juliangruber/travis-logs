@@ -29,6 +29,19 @@ const getPusher = () => new Promise((resolve, reject) => {
   })
 })
 
+const streamLogs = (appKey, job) => new Promise(resolve => {
+  const socket = new Pusher(appKey)
+  const channel = socket.subscribe(`job-${job.id}`)
+  channel.bind('job:log', msg => {
+    process.stdout.write(msg._log)
+    if (msg.final) {
+      channel.unbind()
+      socket.unsubscribe(`job-${job.id}`)
+      resolve()
+    }
+  })
+})
+
 let repo, sha
 
 Promise.all([
@@ -56,16 +69,13 @@ Promise.all([
     const job = jobs.find(
       job => job.state !== 'failed' && job.state !== 'passed'
     )
-    const socket = new Pusher(appKey)
-    const channel = socket.subscribe(`job-${job.id}`)
-    channel.bind('job:log', msg => {
-      process.stdout.write(msg._log)
-      if (msg.final) {
-        getBuild({ repo, sha }).then(build => {
-          if (build.state === 'failed') failure()
-          else if (build.state === 'passed') passed()
-          // else: repeat
-        })
-      }
+    return [appKey, job]
+  })
+  .then(([appKey, job]) => streamLogs(appKey, job))
+  .then(() => {
+    getBuild({ repo, sha }).then(build => {
+      if (build.state === 'failed') failure()
+      else if (build.state === 'passed') passed()
+      // else: repeat
     })
   })
