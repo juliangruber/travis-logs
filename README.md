@@ -1,7 +1,7 @@
 
 # travis-logs [![Build Status](https://travis-ci.org/juliangruber/travis-logs.svg?branch=master)](https://travis-ci.org/juliangruber/travis-logs)
 
-Stream travis logs of the current repository's last commit's last build to the terminal.
+Stream travis logs of the current repository's last commit's first unfinished build to the terminal.
 
 ![screenshot](screenshot.png)
 
