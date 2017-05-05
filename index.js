@@ -29,9 +29,14 @@ const getPusher = () => new Promise((resolve, reject) => {
   })
 })
 
+let repo, sha
+
 Promise.all([
   Promise.all([getRepo(dir), getCommit(dir)])
-      .then(([repo, sha]) => getBuild({ repo, sha }))
+      .then(([_repo, _sha]) => {
+        [repo, sha] = [_repo, _sha]
+        return getBuild({ repo, sha })
+      })
       .then(build => {
         if (build.state === 'failed') failure()
         else if (build.state === 'passed') passed()
@@ -56,10 +61,11 @@ Promise.all([
     channel.bind('job:log', msg => {
       process.stdout.write(msg._log)
       if (msg.final) {
-        console.log(`FINAL "${msg._log}"`)
-        const success = msg._log.indexOf('0') > -1
-        if (success) passed()
-        else failure()
+        getBuild({ repo, sha }).then(build => {
+          if (build.state === 'failed') failure()
+          else if (build.state === 'passed') passed()
+          // else: repeat
+        })
       }
     })
   })
