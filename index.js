@@ -89,3 +89,7 @@ Promise.all([getRepo(dir), getCommit(dir)])
     [repo, sha] = [_repo, _sha]
     return next()
   })
+  .catch(err => {
+    spinner.fail(`Error: ${err.message}`)
+    process.exit(1)
+  })
