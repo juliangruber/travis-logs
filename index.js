@@ -7,8 +7,9 @@ const getBuild = require('travis-build-by-commit')
 const Travis = require('travis-ci')
 const Pusher = require('pusher-js')
 const ora = require('ora')
+const OrderedEmitter = require('ordered-emitter')
 
-require('blocking-stdio')();
+require('blocking-stdio')()
 
 const travis = new Travis({ version: '2.0.0' })
 const dir = process.argv[2] || process.cwd()
@@ -34,11 +35,12 @@ const streamLogs = (appKey, job) => new Promise(resolve => {
   spinner.text = 'Waiting for logs'
   const socket = new Pusher(appKey)
   const channel = socket.subscribe(`job-${job.id}`)
-  channel.bind('job:log', msg => {
-    if (spinner) {
-      spinner.stop()
-      spinner = null
-    }
+  const ordered = new OrderedEmitter()
+  ordered.once('log', () => {
+    spinner.stop()
+    spinner = null
+  })
+  ordered.on('log', msg => {
     process.stdout.write(msg._log)
     if (msg.final) {
       spinner = ora('').start()
@@ -46,6 +48,9 @@ const streamLogs = (appKey, job) => new Promise(resolve => {
       socket.unsubscribe(`job-${job.id}`)
       resolve()
     }
+  })
+  channel.bind('job:log', msg => {
+    ordered.emit('log', Object.assign(msg, { order: msg.number }))
   })
 })
 
