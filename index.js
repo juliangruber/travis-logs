@@ -33,9 +33,14 @@ const getPusher = () => new Promise((resolve, reject) => {
 })
 
 const streamLogs = (appKey, job) => new Promise(resolve => {
+  spinner.text = 'Waiting for logs'
   const socket = new Pusher(appKey)
   const channel = socket.subscribe(`job-${job.id}`)
   channel.bind('job:log', msg => {
+    if (spinner) {
+      spinner.stop()
+      spinner = null
+    }
     process.stdout.write(msg._log)
     if (msg.final) {
       channel.unbind()
@@ -53,35 +58,30 @@ const getJob = id => new Promise((resolve, reject) => {
 let repo, sha
 let spinner = ora('Loading repo, commit, settings').start()
 
-Promise.all([
-  Promise.all([getRepo(dir), getCommit(dir)])
-      .then(([_repo, _sha]) => {
-        [repo, sha] = [_repo, _sha]
-        spinner.text = 'Loading build'
-        return getBuild({ repo, sha })
-      })
-      .then(build => {
-        if (build.state === 'failed') failure()
-        else if (build.state === 'passed') passed()
-        spinner.text = 'Loading jobs'
-        return build
-      })
-      .then(build => Promise.all(build.job_ids.map(id => getJob(id)))),
-  getPusher()
-])
-  .then(([jobs, appKey]) => {
-    const job = jobs.find(
-      job => job.state !== 'failed' && job.state !== 'passed'
-    )
-    spinner.stop()
-    spinner = null
-    return [appKey, job]
-  })
-  .then(([appKey, job]) => streamLogs(appKey, job))
-  .then(() => {
-    getBuild({ repo, sha }).then(build => {
+const next = () => {
+  if (spinner) spinner.text = 'Loading build'
+  return getBuild({ repo, sha })
+    .then(build => {
       if (build.state === 'failed') failure()
       else if (build.state === 'passed') passed()
-      // else: repeat
+      if (spinner) spinner.text = 'Loading jobs'
+      return build
     })
+    .then(build => Promise.all([
+      getPusher(),
+      Promise.all(build.job_ids.map(id => getJob(id)))
+    ]))
+    .then(([appKey, jobs]) => {
+      const job = jobs.find(
+        job => job.state !== 'failed' && job.state !== 'passed'
+      )
+      return streamLogs(appKey, job)
+    })
+    .then(next)
+}
+
+Promise.all([getRepo(dir), getCommit(dir)])
+  .then(([_repo, _sha]) => {
+    [repo, sha] = [_repo, _sha]
+    return next()
   })
