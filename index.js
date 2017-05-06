@@ -14,14 +14,12 @@ const travis = new Travis({ version: '2.0.0' })
 const dir = process.argv[2] || process.cwd()
 
 const failure = () => {
-  if (spinner) spinner.fail('Build failed!')
-  else console.error('Build failed!')
+  spinner.fail('Build failed!')
   process.exit(1)
 }
 
 const passed = () => {
-  if (spinner) spinner.succeed('Build passed!')
-  else console.log('Build passed!')
+  spinner.succeed('Build passed!')
   process.exit(0)
 }
 
@@ -43,6 +41,7 @@ const streamLogs = (appKey, job) => new Promise(resolve => {
     }
     process.stdout.write(msg._log)
     if (msg.final) {
+      spinner = ora('').start()
       channel.unbind()
       socket.unsubscribe(`job-${job.id}`)
       resolve()
@@ -59,12 +58,12 @@ let repo, sha
 let spinner = ora('Loading repo, commit, settings').start()
 
 const next = () => {
-  if (spinner) spinner.text = 'Loading build'
+  spinner.text = 'Loading build'
   return getBuild({ repo, sha })
     .then(build => {
       if (build.state === 'failed') failure()
       else if (build.state === 'passed') passed()
-      if (spinner) spinner.text = 'Loading jobs'
+      spinner.text = 'Loading jobs'
       return build
     })
     .then(build => Promise.all([
