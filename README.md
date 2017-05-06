@@ -3,7 +3,9 @@
 
 Stream travis logs of the current repository's current commit to the terminal, until all jobs are finished!
 
-![screenshot](screenshot.png)
+![screenshot](screenshots/1.png)
+
+![screenshot](screenshots/2.png)
 
 ## Usage
 
