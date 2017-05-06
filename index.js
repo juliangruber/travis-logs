@@ -73,10 +73,11 @@ const next = () => {
       spinner.text = 'Loading jobs'
       return build
     })
-    .then(build => Promise.all([
-      getPusher(),
-      Promise.all(build.job_ids.map(id => getJob(id)))
-    ]))
+    .then(build =>
+      Promise.all([
+        getPusher(),
+        Promise.all(build.job_ids.map(id => getJob(id)))
+      ]))
     .then(([appKey, jobs]) => {
       const job = jobs.find(
         job => job.state !== 'failed' && job.state !== 'passed'
