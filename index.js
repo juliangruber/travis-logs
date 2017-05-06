@@ -36,6 +36,7 @@ const streamLogs = (appKey, job) => new Promise(resolve => {
   const socket = new Pusher(appKey)
   const channel = socket.subscribe(`job-${job.id}`)
   const ordered = new OrderedEmitter()
+  let offset
   ordered.once('log', () => {
     spinner.stop()
     spinner = null
@@ -50,7 +51,8 @@ const streamLogs = (appKey, job) => new Promise(resolve => {
     }
   })
   channel.bind('job:log', msg => {
-    ordered.emit('log', Object.assign(msg, { order: msg.number }))
+    if (typeof offset !== 'number') offset = msg.number
+    ordered.emit('log', Object.assign(msg, { order: msg.number - offset }))
   })
 })
 
