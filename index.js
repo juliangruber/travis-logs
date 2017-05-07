@@ -32,15 +32,16 @@ const getPusher = () => new Promise((resolve, reject) => {
 
 const streamLogs = (appKey, jobId) => new Promise((resolve, reject) => {
   spinner.text = 'Waiting for logs'
+    console.log({ appKey, jobId })
   const s = logStream({ appKey, jobId })
-  s.once('data', () => {
+  /*s.once('data', () => {
     spinner.stop()
     spinner = null
   })
   s.on('end', () => {
     spinner = ora('').start()
     resolve()
-  })
+  })*/
   s.on('error', err => reject(err))
   s.pipe(process.stdout, { end: false })
 })
