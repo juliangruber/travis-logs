@@ -24,6 +24,10 @@ $ travis-logs ~/dev/level/leveldown
 $ npm install -g travis-logs
 ```
 
+## Related projects
+
+- __[travis-log-stream](https://github.com/juliangruber/travis-log-stream)__ &mdash; Read streaming travis logs, no matter if live or historic.
+
 ## License
 
 MIT
