@@ -30,7 +30,7 @@ const getPusher = () => new Promise((resolve, reject) => {
   })
 })
 
-const streamLogs = (appKey, jobId) => new Promise((resolve, reject) => {
+const streamLogs = ({ appKey, jobId }) => new Promise((resolve, reject) => {
   spinner.text = 'Waiting for logs'
   const s = logStream({ appKey, jobId })
   s.once('data', () => {
