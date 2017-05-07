@@ -8,6 +8,8 @@ const Travis = require('travis-ci')
 const Pusher = require('pusher-js')
 const ora = require('ora')
 const OrderedEmitter = require('ordered-emitter')
+const got = require('got')
+const pkg = require('./package')
 
 require('blocking-stdio')()
 
@@ -31,30 +33,61 @@ const getPusher = () => new Promise((resolve, reject) => {
   })
 })
 
-const streamLogs = (appKey, job) => new Promise(resolve => {
-  spinner.text = 'Waiting for logs'
-  const socket = new Pusher(appKey)
-  const channel = socket.subscribe(`job-${job.id}`)
-  const ordered = new OrderedEmitter()
-  let offset
-  ordered.once('log', () => {
-    spinner.stop()
-    spinner = null
-  })
-  ordered.on('log', msg => {
-    process.stdout.write(msg._log)
-    if (msg.final) {
-      spinner = ora('').start()
-      channel.unbind()
-      socket.unsubscribe(`job-${job.id}`)
-      resolve()
+const getLogs = job =>
+  got(`https://api.travis-ci.org/jobs/${job.id}/log`, {
+    headers: {
+      'user-agent': `github.com/juliangruber/travis-logs@${pkg.version}`,
+      accept: 'application/json; chunked=true; version=2, text/plain; version=2'
     }
   })
-  channel.bind('job:log', msg => {
-    if (typeof offset !== 'number') offset = msg.number
-    ordered.emit('log', Object.assign(msg, { order: msg.number - offset }))
-  })
-})
+
+const streamLogs = (appKey, job) => {
+  const ordered = new OrderedEmitter()
+
+  return Promise.all([
+    new Promise(resolve => {
+      const finish = () => {
+        spinner = ora('').start()
+        channel.unbind()
+        socket.unsubscribe(`job-${job.id}`)
+        resolve()
+      }
+
+      spinner.text = 'Waiting for logs'
+      ordered.once('log', () => {
+        spinner.stop()
+        spinner = null
+      })
+      ordered.on('log', msg => {
+        process.stdout.write(msg._log || msg.content || '')
+        if (msg.final) finish()
+      })
+
+      const socket = new Pusher(appKey)
+      const channel = socket.subscribe(`job-${job.id}`)
+      channel.bind('job:log', msg => {
+        ordered.emit('log', Object.assign(msg, { order: msg.number }))
+      })
+    }),
+    getLogs(job)
+    .then(res => {
+      try {
+        return JSON.parse(res.body)
+      } catch (err) {
+        return res.body
+      }
+    })
+    .then(body => {
+      if (typeof body === 'string') {
+        ordered.emit('log', { order: 0, _log: body, final: true })
+      } else {
+        body.log.parts.forEach(part => {
+          ordered.emit('log', Object.assign(part, { order: part.number }))
+        })
+      }
+    })
+  ])
+}
 
 const getJob = id => new Promise((resolve, reject) => {
   const cb = (err, res) => err ? reject(err) : resolve(res.job)
