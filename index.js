@@ -13,16 +13,6 @@ require('blocking-stdio')()
 const travis = new Travis({ version: '2.0.0' })
 const dir = process.argv[2] || process.cwd()
 
-const failure = () => {
-  spinner.fail('Build failed!')
-  process.exit(1)
-}
-
-const passed = () => {
-  spinner.succeed('Build passed!')
-  process.exit(0)
-}
-
 const getPusher = () => new Promise((resolve, reject) => {
   travis.config.get((err, res) => {
     if (err) return reject(err)
@@ -53,33 +43,42 @@ const getJob = id => new Promise((resolve, reject) => {
 let repo, sha
 let spinner = ora('Loading repo, commit, settings').start()
 
-const next = () => {
-  spinner.text = 'Loading build'
-  return getBuild({ repo, sha })
-    .then(build => {
-      if (build.state === 'failed') failure()
-      else if (build.state === 'passed') passed()
-      spinner.text = 'Loading jobs'
-      return build
-    })
-    .then(build =>
-      Promise.all([
-        getPusher(),
-        Promise.all(build.job_ids.map(id => getJob(id)))
-      ]))
-    .then(([appKey, jobs]) => {
-      const jobId = jobs.find(
-        job => job.state !== 'failed' && job.state !== 'passed'
-      ).id
-      return streamLogs({ appKey, jobId })
-    })
-    .then(next)
-}
-
 Promise.all([getRepo(dir), getCommit(dir)])
   .then(([_repo, _sha]) => {
     [repo, sha] = [_repo, _sha]
-    return next()
+  })
+  .then(() => {
+    spinner.text = 'Loading build'
+    return getBuild({ repo, sha })
+  })
+  .then(build => {
+    spinner.text = 'Loading jobs'
+    return Promise.all([
+      Promise.all(build.job_ids.map(id => getJob(id))),
+      getPusher()
+    ])
+  })
+  .then(([jobs, appKey]) => {
+    const start = Promise.resolve(true)
+    let next = start
+    for (let job of jobs) {
+      next = next.then(() => streamLogs({ jobId: job.id, appKey }))
+    }
+    next
+      .then(() => {
+        spinner.text = 'Loading build'
+        return getBuild({ repo, sha })
+      })
+      .then(build => {
+        if (build.state === 'passed') {
+          spinner.succeed('Build passed!')
+          process.exit(0)
+        } else {
+          spinner.fail('Build failed!')
+          process.exit(1)
+        }
+      })
+    return start
   })
   .catch(err => {
     spinner.fail(`Error: ${err.message}`)
