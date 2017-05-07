@@ -14,6 +14,7 @@
     "gh-canonical-repository": "^2.1.0",
     "git-current-commit": "^1.1.0",
     "ora": "^1.2.0",
+    "p-retry": "^1.0.0",
     "travis-build-by-commit": "^1.0.0",
     "travis-ci": "^2.1.1",
     "travis-log-stream": "^2.0.0"

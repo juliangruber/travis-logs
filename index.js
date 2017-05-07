@@ -7,6 +7,7 @@ const getBuild = require('travis-build-by-commit')
 const Travis = require('travis-ci')
 const ora = require('ora')
 const logStream = require('travis-log-stream')
+const retry = require('p-retry')
 
 require('blocking-stdio')()
 
@@ -43,7 +44,10 @@ const getJob = id => new Promise((resolve, reject) => {
 let repo, sha
 let spinner = ora('Loading repo, commit, settings').start()
 
-Promise.all([getRepo(dir), getCommit(dir)])
+Promise.all([
+  getRepo(dir),
+  retry(() => getCommit(dir), { retries: 5 })
+])
   .then(([_repo, _sha]) => {
     [repo, sha] = [_repo, _sha]
   })
