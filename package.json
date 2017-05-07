@@ -13,12 +13,10 @@
     "blocking-stdio": "^1.0.1",
     "gh-canonical-repository": "^2.1.0",
     "git-current-commit": "^1.1.0",
-    "got": "^6.7.1",
     "ora": "^1.2.0",
-    "ordered-emitter": "^1.0.0",
-    "pusher-js": "^4.1.0",
     "travis-build-by-commit": "^1.0.0",
-    "travis-ci": "^2.1.1"
+    "travis-ci": "^2.1.1",
+    "travis-log-stream": "^1.0.0"
   },
   "devDependencies": {
     "prettier-standard-formatter": "^0.222222222222222.333333333333333",
