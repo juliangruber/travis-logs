@@ -44,7 +44,7 @@ logs('.')
   })
 ```
 
-For more events, check out `./bin.js`.
+For more events, check out [bin.js](https://github.com/juliangruber/travis-logs/blob/master/bin.js).
 
 ## Related projects
 
