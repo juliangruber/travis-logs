@@ -4,7 +4,7 @@
   "license": "MIT",
   "repository": "juliangruber/travis-logs",
   "bin": {
-    "travis-logs": "index.js"
+    "travis-logs": "bin.js"
   },
   "scripts": {
     "test": "prettier-standard-formatter *.js && standard"
