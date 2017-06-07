@@ -39,9 +39,6 @@ logs('.')
   .on('fail', () => {
     process.exit(1)
   })
-  .on('error', err => {
-    throw err
-  })
 ```
 
 For more events, check out [bin.js](https://github.com/juliangruber/travis-logs/blob/master/bin.js).
