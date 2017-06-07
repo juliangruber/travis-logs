@@ -24,6 +24,28 @@ $ travis-logs ~/dev/level/leveldown
 $ npm install -g travis-logs
 ```
 
+## JS API
+
+```js
+const logs = require('travis-logs')
+
+logs('.')
+  .on('job', stream => {
+    stream.pipe(process.stdout, { end: false })
+  })
+  .on('pass', () => {
+    process.exit(0)
+  })
+  .on('fail', () => {
+    process.exit(1)
+  })
+  .on('error', err => {
+    throw err
+  })
+```
+
+For more events, check out `./bin.js`.
+
 ## Related projects
 
 - __[travis-watch](https://github.com/juliangruber/travis-watch)__ &mdash; Stream live Travis test results of the current commit to your terminal!
